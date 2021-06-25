@@ -4,16 +4,17 @@ from pygame.locals import *
 from constants import *
 
 
-root = pygame.display.set_mode((924, 624))
+root = pygame.display.set_mode((1020, 624))
 root.fill(GRAY)
 
-screen = pygame.Surface((900, 600))
+screen = pygame.Surface((996, 600))
 
-box = pygame.Surface((90, 50))
+box = pygame.Surface((60, 30))
 box.fill(RED)
 
-for i in range(1, 9):
-    screen.blit(box, (-90 + 100*i, 24))
+for j in range(1, 9):
+    for i in range(1, 16):
+        screen.blit(box, (-60 + 66*i, -6 + 36*j))
 
 root.blit(screen, (12, 12))
 
@@ -23,5 +24,3 @@ while True:
             pygame.quit()
             sys.exit()
     pygame.display.update()
-
-
