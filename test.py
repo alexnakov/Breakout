@@ -27,7 +27,7 @@ class RightToLeftVerticalCollisionLine:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
-                or not (ball_object.centre_x + ball_object.radius >= self.top_y):
+                or not (ball_object.centre_x + ball_object.radius >= self.top_x):
             self.colliding = False
 
     def update(self):
@@ -59,7 +59,7 @@ class LeftToRightVerticalCollisionLine:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
-                or not (ball_object.centre_y + ball_object.radius >= self.top_y):
+                or not (ball_object.centre_x - ball_object.radius <= self.top_x):
             self.colliding = False
 
     def update(self):
