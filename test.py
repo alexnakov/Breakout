@@ -23,7 +23,7 @@ class VerticalCollisionLine:
 
     def check_collision(self, ball_object):
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
-                and ball_object.centre_x - ball_object.radius >= self.top_x:
+                and ball_object.centre_x - ball_object.radius <= self.top_x:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
@@ -98,7 +98,7 @@ class Ball:
 
 root = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
-ball = Ball(600, 500, 20, (-10, -10), 2)
+ball = Ball(600, 500, 20, (-12, -10), 2)
 collision_line = HorizontalCollisionLine(100, 350, 600)
 v_collision_line = VerticalCollisionLine(300, 50, 50)
 while True:
