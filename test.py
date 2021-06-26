@@ -19,14 +19,31 @@ class CollisionRectangle:
         self.x, self.y = x, y
 
         if self.orientation == "H":
+            self.top_left = (self.x, self.y - self.width / 2)
+            self.bottom_right = (self.x + self.length, self.y + self.width)
+        elif self.orientation == "V":
             self.top_left = (self.x, self.y)
+
+
+class HorizontalCollisionOuterSurface:
+    """ This is a horizontal invisible line on top of the paddle to check whether the ball
+        collides on top with the paddle.
+    """
+
+    def __init__(self, length, x, y):
+        self.length = length
+        self.x, self.y = x, y
 
 
 
 class Ball:
     def __init__(self, x, y, radius, initial_velocity, time):
-        self.x, self.y = x, y
         self.radius = radius
+        self.x, self.y = x, y
+        self.bottom_y = self.y + self.radius
+        self.top_y = self.y - self.radius
+        self.right_x = self.x + self.radius
+        self.left_x = self.x - self.radius
         self.velocity = pygame.Vector2(initial_velocity)
         self.time = time
         self.colliding = False
@@ -42,12 +59,12 @@ class Ball:
         x_new, y_new = round(self.x), round(self.y)
         pygame.draw.circle(root, RED, (x_new, y_new), self.radius)
 
-    def check_for_collision_with_paddle(self, paddle_object):
-        shortest_possible_distance_between_ball_paddle = (paddle_object.height / 2) + self.radius
-        if (paddle_object.centre_y - self.y) <= shortest_possible_distance_between_ball_paddle and \
-                paddle_object.x <= self.x <= paddle_object.x + paddle_object.width:
-            self.colliding = True
-            self.velocity[1] = -self.velocity[1]
+    # def check_for_collision_with_paddle(self, paddle_object):
+    #     shortest_possible_distance_between_ball_paddle = (paddle_object.height / 2) + self.radius
+    #     if (paddle_object.centre_y - self.y) <= shortest_possible_distance_between_ball_paddle and \
+    #             paddle_object.x <= self.x <= paddle_object.x + paddle_object.width:
+    #         self.colliding = True
+    #         self.velocity[1] = -self.velocity[1]
 
 
 class Paddle:
@@ -56,6 +73,7 @@ class Paddle:
         self.width, self.height = width, height
         self.centre_x = self.x + (self.width / 2)
         self.centre_y = self.y + (self.height / 2)
+        self.collision_surf = HorizontalCollisionOuterSurface(self.width, self.x, self.y)
 
     def update(self):
         pygame.draw.rect(root, NAVY, Rect(self.x, self.y, self.width, self.height))
@@ -65,7 +83,7 @@ root = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
 
 paddle = Paddle(350, 650, 200, 50)
-ball = Ball(200, 400, 10, (5, 10), 5)
+ball = Ball(250, 400, 10, (5, 10), 5)
 
 while True:
     for event in pygame.event.get():
@@ -73,7 +91,6 @@ while True:
             pygame.quit()
             sys.exit()
     root.fill(BLACK)
-    ball.check_for_collision_with_paddle(paddle)
     paddle.update()
     ball.update()
     pygame.display.update()
