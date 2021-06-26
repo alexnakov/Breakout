@@ -4,7 +4,39 @@ from pygame.locals import *
 from constants import *
 
 
-class VerticalCollisionLine:
+class RightToLeftVerticalCollisionLine:
+    """ This is a vertical which allows balls incoming from the right ot re-bounce to the left. """
+
+    def __init__(self, length, x, y):
+        """
+        The vertical line will be 1 px long for now
+        :param length: Length of line in pixels
+        :param x: The x coord of the left end
+        :param y: The y coord of the left end
+        """
+        self.length = length
+        self.top_x, self.top_y = x, y
+        self.colliding = False
+
+    def draw(self):
+        pygame.draw.line(root, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
+
+    def check_collision(self, ball_object):
+        if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
+                and ball_object.centre_x + ball_object.radius >= self.top_x:
+            ball_object.velocity[0] = -ball_object.velocity[0]
+            self.colliding = True
+        elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
+                or not (ball_object.centre_x + ball_object.radius >= self.top_y):
+            self.colliding = False
+
+    def update(self):
+
+        self.check_collision(ball)
+        self.draw()
+
+
+class LeftToRightVerticalCollisionLine:
     """ This is a vertical line which will act as the paddle to test collisions. """
 
     def __init__(self, length, x, y):
@@ -36,7 +68,7 @@ class VerticalCollisionLine:
         self.draw()
 
 
-class HorizontalCollisionLine:
+class DownToUpHorizontalCollisionLine:
     """ This is a horizontal line which will act as the paddle to test collisions. """
 
     def __init__(self, length, x, y):
@@ -98,9 +130,10 @@ class Ball:
 
 root = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
-ball = Ball(600, 500, 20, (-12, -10), 2)
-collision_line = HorizontalCollisionLine(100, 350, 600)
-v_collision_line = VerticalCollisionLine(300, 50, 50)
+ball = Ball(200, 35, 10, (10, 10), 2)
+
+v1 = LeftToRightVerticalCollisionLine(500, 200, 50)
+v2 = RightToLeftVerticalCollisionLine(500, 250, 50)
 while True:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -110,8 +143,9 @@ while True:
     # Screen updates here
     root.fill(BLACK)
 
-    v_collision_line.update()
-    collision_line.update()
+    v1.update()
+    v2.update()
+
     ball.update()
 
     pygame.display.update()
