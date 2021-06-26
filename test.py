@@ -5,19 +5,23 @@ from constants import *
 
 
 class Ball:
-    def __init__(self, radius, centre, initial_velocity):
+    def __init__(self, x, y, radius, initial_velocity, time):
+        self.x, self.y = x, y
         self.radius = radius
-        self.x, self.y = centre
         self.velocity = pygame.Vector2(initial_velocity)
+        self.time = time
+        self.colliding = False
+
+    def draw(self):
+        pygame.draw.circle(root, RED, (self.x, self.y), self.radius)
 
     def update(self):
         normalised_vector = pygame.Vector2.normalize(self.velocity)
         dx, dy = normalised_vector[0], normalised_vector[1]
-        self.x += dx
-        self.y += dy
+        self.x += dx * self.time
+        self.y += dy * self.time
         x_new, y_new = int(self.x), int(self.y)
         pygame.draw.circle(root, RED, (x_new, y_new), self.radius)
-
 
 
 class Paddle:
@@ -30,8 +34,11 @@ class Paddle:
 
 
 root = pygame.display.set_mode((800, 800))
-paddle = Paddle(350,650,200,50)
-ball = Ball(5, (5,5), (0.3,0.3))
+clock = pygame.time.Clock()
+
+paddle = Paddle(350, 650, 200, 50)
+ball = Ball(400, 400, 10, (0, 10), 5)
+
 while True:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -41,3 +48,4 @@ while True:
     paddle.update()
     ball.update()
     pygame.display.update()
+    clock.tick(30)
