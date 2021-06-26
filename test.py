@@ -4,7 +4,39 @@ from pygame.locals import *
 from constants import *
 
 
-class HorizontalCollisionOuterSurface:
+class VerticalCollisionLine:
+    """ This is a vertical line which will act as the paddle to test collisions. """
+
+    def __init__(self, length, x, y):
+        """
+        The vertical line will be 1 px long for now
+        :param length: Length of line in pixels
+        :param x: The x coord of the left end
+        :param y: The y coord of the left end
+        """
+        self.length = length
+        self.top_x, self.top_y = x, y
+        self.colliding = False
+
+    def draw(self):
+        pygame.draw.line(root, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
+
+    def check_collision(self, ball_object):
+        if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
+                and ball_object.centre_x - ball_object.radius >= self.top_x:
+            ball_object.velocity[0] = -ball_object.velocity[0]
+            self.colliding = True
+        elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
+                or not (ball_object.centre_y + ball_object.radius >= self.top_y):
+            self.colliding = False
+
+    def update(self):
+
+        self.check_collision(ball)
+        self.draw()
+
+
+class HorizontalCollisionLine:
     """ This is a horizontal line which will act as the paddle to test collisions. """
 
     def __init__(self, length, x, y):
@@ -18,25 +50,19 @@ class HorizontalCollisionOuterSurface:
         self.left_x, self.left_y = x, y
         self.colliding = False
 
-        self.right_x, self.right_y = self.length + self.left_x, self.left_y
-        self.centre_x = (self.right_x + self.left_x) / 2
-
     def draw(self):
-        pygame.draw.line(root, BLUE, (self.left_x, self.left_y), (self.right_x, self.right_y))
+        pygame.draw.line(root, BLUE, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
 
     def check_collision(self, ball_object):
-        if not self.colliding and self.left_x <= ball_object.centre_x <= self.right_x \
-                and ball_object.bottom_y >= self.left_y:  # Any y coord will do
+        if not self.colliding and self.left_x <= ball_object.centre_x <= self.left_x + self.length \
+                and ball_object.centre_y + ball_object.radius >= self.left_y:
             ball_object.velocity[1] = -ball_object.velocity[1]
             self.colliding = True
-        elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.right_x) \
-                or not (ball_object.bottom_y >= self.left_y):
+        elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
+                or not (ball_object.centre_y + ball_object.radius >= self.left_y):
             self.colliding = False
 
     def update(self):
-        self.right_x, self.right_y = self.length + self.left_x, self.left_y
-        self.centre_x = (self.right_x + self.left_x) / 2
-
         mouse_x = pygame.mouse.get_pos()[0]
         self.left_x = mouse_x - self.length / 2
 
@@ -58,20 +84,10 @@ class Ball:
         self.time = time
         self.velocity = pygame.Vector2(initial_velocity)
 
-        self.bottom_y = self.centre_y + self.radius
-        self.top_y = self.centre_y - self.radius
-        self.right_x = self.centre_x + self.radius
-        self.left_x = self.centre_x - self.radius
-
     def draw(self):
         pygame.draw.circle(root, RED, (self.centre_x, self.centre_y), self.radius)
 
     def update(self):
-        self.bottom_y = self.centre_y + self.radius
-        self.top_y = self.centre_y - self.radius
-        self.right_x = self.centre_x + self.radius
-        self.left_x = self.centre_x - self.radius
-
         dx, dy = pygame.Vector2.normalize(self.velocity)
         # distance = speed * time
         self.centre_x += dx * self.time
@@ -82,8 +98,9 @@ class Ball:
 
 root = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
-ball = Ball(200, 200, 20, (10, 20), 3)
-collision_line = HorizontalCollisionOuterSurface(100, 350, 600)
+ball = Ball(600, 500, 20, (-10, -10), 2)
+collision_line = HorizontalCollisionLine(100, 350, 600)
+v_collision_line = VerticalCollisionLine(300, 50, 50)
 while True:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -93,6 +110,7 @@ while True:
     # Screen updates here
     root.fill(BLACK)
 
+    v_collision_line.update()
     collision_line.update()
     ball.update()
 
