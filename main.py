@@ -53,6 +53,7 @@ class RightToLeftVerticalCollisionLine:
         self.top_x, self.top_y = x, y
         self.surface = surface
         self.colliding = False
+        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
@@ -62,6 +63,7 @@ class RightToLeftVerticalCollisionLine:
                 and ball_object.centre_x + ball_object.radius >= self.top_x >= ball_object.centre_x:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
+            self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
                 or not (ball_object.centre_x + ball_object.radius >= self.top_x):
             self.colliding = False
@@ -87,6 +89,7 @@ class LeftToRightVerticalCollisionLine:
         self.top_x, self.top_y = x, y
         self.surface = surface
         self.colliding = False
+        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
@@ -96,6 +99,7 @@ class LeftToRightVerticalCollisionLine:
                 ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
+            self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
                 or not (ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x):
             self.colliding = False
@@ -120,6 +124,7 @@ class DownToUpHorizontalCollisionLine:
         self.left_x, self.left_y = x, y
         self.surface = surface
         self.colliding = False
+        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
@@ -129,6 +134,7 @@ class DownToUpHorizontalCollisionLine:
                 and ball_object.centre_y + ball_object.radius >= self.left_y >= ball_object.centre_y:
             ball_object.velocity[1] = -ball_object.velocity[1]
             self.colliding = True
+            self.number_collisions += 1
         elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
                 or not (ball_object.centre_y + ball_object.radius >= self.left_y):
             self.colliding = False
@@ -153,6 +159,7 @@ class UpToDownHorizontalCollisionLine:
         self.left_x, self.left_y = x, y
         self.surface = surface
         self.colliding = False
+        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
@@ -162,6 +169,7 @@ class UpToDownHorizontalCollisionLine:
                 self.length and ball_object.centre_y - ball_object.radius <= self.left_y <= ball_object.centre_y:
             ball_object.velocity[1] = -ball_object.velocity[1]
             self.colliding = True
+            self.number_collisions += 1
         elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
                 or not (ball_object.centre_y - ball_object.radius <= self.left_y):
             self.colliding = False
@@ -222,6 +230,41 @@ class Brick:
         self.bottom_wall.update()
 
 
+class Paddle:
+    def __init__(self, x, y, length, height, surface):
+        """
+        :param x: x coord of the top left corner
+        :param y: y coord of the top right corner
+        :param length: horizontal length
+        :param height: vertical length
+        """
+        self.x, self.y = x, y
+        self.length, self.height = length, height
+        self.surface = surface
+
+        self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
+        self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
+        self.top_wall = DownToUpHorizontalCollisionLine(self.length, self.x, self.y, screen)
+        self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y + self.height, screen)
+
+    def draw(self):
+        pygame.draw.rect(self.surface, RED, (self.x, self.y, self.length, self.height))
+
+    def update(self):
+        mouse_x = pygame.mouse.get_pos()[0]
+        self.x = mouse_x - self.length / 2
+        self.top_wall.left_x = mouse_x - self.length / 2
+        self.left_wall.top_x = mouse_x - self.length / 2
+        self.bottom_wall.left_x = mouse_x - self.length / 2
+        self.right_wall.top_x = mouse_x + self.length / 2
+
+        self.draw()
+        self.left_wall.update()
+        self.right_wall.update()
+        self.top_wall.update()
+        self.bottom_wall.update()
+
+
 root = pygame.display.set_mode((1020, 624))
 clock = pygame.time.Clock()
 
@@ -235,6 +278,7 @@ screen_right_wall = RightToLeftVerticalCollisionLine(600, 995, 0, screen)
 screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
 
 ball = Ball(600, 500, 10, (-10, -10), 3)
+paddle = Paddle(300, 475, 200, 50, screen)
 
 bricks = []
 
@@ -254,8 +298,12 @@ while True:
     screen_right_wall.update()
     screen_left_wall.update()
     screen_top_wall.update()
+    paddle.update()
     for brick in bricks:
         brick.update()
+        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
+                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
+            bricks.remove(bricks[bricks.index(brick)])
     # brick1.update()
     ball.update()
     root.blit(screen, (12, 12))
