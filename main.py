@@ -41,19 +41,21 @@ class PaddleDownToUpLine:
 class RightToLeftVerticalCollisionLine:
     """ This is a vertical which allows balls incoming from the right ot re-bounce to the left. """
 
-    def __init__(self, length, x, y):
+    def __init__(self, length, x, y, surface):
         """
         The vertical line will be 1 px long for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
+        :param surface: The surface on which the coordinates to act on the walls to be blit
         """
         self.length = length
         self.top_x, self.top_y = x, y
+        self.surface = surface
         self.colliding = False
 
     def draw(self):
-        pygame.draw.line(root, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
+        pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
 
     def check_collision(self, ball_object):
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
@@ -73,19 +75,21 @@ class RightToLeftVerticalCollisionLine:
 class LeftToRightVerticalCollisionLine:
     """ This is a vertical line which will act as the paddle to test collisions. """
 
-    def __init__(self, length, x, y):
+    def __init__(self, length, x, y, surface):
         """
         The vertical line will be 1 px long for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
+                :param surface: The surface on which the coordinates to act on the walls to be blit
         """
         self.length = length
         self.top_x, self.top_y = x, y
+        self.surface = surface
         self.colliding = False
 
     def draw(self):
-        pygame.draw.line(root, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
+        pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
 
     def check_collision(self, ball_object):
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length and \
@@ -105,19 +109,21 @@ class LeftToRightVerticalCollisionLine:
 class DownToUpHorizontalCollisionLine:
     """ This is a horizontal line which will act as the paddle to test collisions. """
 
-    def __init__(self, length, x, y):
+    def __init__(self, length, x, y, surface):
         """
         The horizontal line will be 1 px long for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
+        :param surface: The surface on which the coordinates to act on the walls to be blit
         """
         self.length = length
         self.left_x, self.left_y = x, y
+        self.surface = surface
         self.colliding = False
 
     def draw(self):
-        pygame.draw.line(root, BLUE, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
+        pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
 
     def check_collision(self, ball_object):
         if not self.colliding and self.left_x <= ball_object.centre_x <= self.left_x + self.length \
@@ -136,19 +142,21 @@ class DownToUpHorizontalCollisionLine:
 class UpToDownHorizontalCollisionLine:
     """ This is a horizontal line which allows balls income from beneath to re-bounce back down """
 
-    def __init__(self, length, x, y):
+    def __init__(self, length, x, y, surface):
         """
         The horizontal line will be 1 px wide for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
+        :param surface: The surface on which the coordinates to act on the walls to be blit
         """
         self.length = length
         self.left_x, self.left_y = x, y
+        self.surface = surface
         self.colliding = False
 
     def draw(self):
-        pygame.draw.line(root, BLUE, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
+        pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
 
     def check_collision(self, ball_object):
         if not self.colliding and self.left_x <= ball_object.centre_x <= self.left_x + \
@@ -188,7 +196,7 @@ class Ball:
 class Brick:
     """ This will be a rectangle where collisions with a ball is possible """
 
-    def __init__(self, x, y, length, height):
+    def __init__(self, x, y, length, height, surface):
         """
         :param x: x coord of the top left corner
         :param y: y coord of the top right corner
@@ -197,14 +205,15 @@ class Brick:
         """
         self.x, self.y = x, y
         self.length, self.height = length, height
+        self.surface = surface
 
-        self.left_wall = LeftToRightVerticalCollisionLine(self.height, self.x, self.y)
-        self.right_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y)
-        self.top_wall = DownToUpHorizontalCollisionLine(self.length, self.x, self.y)
-        self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y)
+        self.left_wall = LeftToRightVerticalCollisionLine(self.height, self.x, self.y, screen)
+        self.right_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
+        self.top_wall = DownToUpHorizontalCollisionLine(self.length, self.x, self.y, screen)
+        self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y, screen)
 
     def draw(self):
-        pygame.draw.rect(root, BLUE, (self.x, self.y, self.length, self.height))
+        pygame.draw.rect(self.surface, BLUE, (self.x, self.y, self.length, self.height))
 
     def update(self):
         self.left_wall.check_collision(ball)
@@ -220,14 +229,18 @@ clock = pygame.time.Clock()
 root.fill(GRAY)
 
 screen = pygame.Surface((996, 600))
+root.blit(screen, (12, 12))
 
-ball = Ball(50, 50, 1, (1, 1), 1)
+screen_left_wall = LeftToRightVerticalCollisionLine(600, 0, 0, screen)
+screen_right_wall = RightToLeftVerticalCollisionLine(600, 995, 0, screen)
+screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
+
+ball = Ball(50, 50, 10, (-10, -1), 3)
 
 # for j in range(1, 9):
 #     for i in range(1, 16):
 #         screen.blit(box, (-60 + 66*i, -6 + 36*j))
 
-root.blit(screen, (12, 12))
 
 while True:
     for event in pygame.event.get():
@@ -235,6 +248,9 @@ while True:
             pygame.quit()
             sys.exit()
     screen.fill(BLACK)
+    screen_right_wall.update()
+    screen_left_wall.update()
+    screen_top_wall.update()
     ball.update()
     root.blit(screen, (12, 12))
     pygame.display.update()
