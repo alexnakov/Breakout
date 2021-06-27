@@ -174,6 +174,10 @@ class Ball:
 
 class Brick:
     """ This will be a rectangle where collisions with a ball is possible """
+    number_red_bricks = 30
+    number_orange_bricks = 30
+    number_yellow_bricks = 30
+    number_green_bricks = 30
 
     def __init__(self, x, y, length, height, surface, colour):
         """
@@ -186,6 +190,8 @@ class Brick:
         self.length, self.height = length, height
         self.surface = surface
         self.colour = colour
+        brick_colours = [GREEN, YELLOW, ORANGE, RED]
+        self.reward_points = (brick_colours.index(self.colour) + 1) * 5
 
         self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
         self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
@@ -201,6 +207,45 @@ class Brick:
         self.right_wall.update()
         self.top_wall.update()
         self.bottom_wall.update()
+
+    def remove_colour(self):
+        if self.colour == RED and Brick.number_red_bricks is not None:
+            Brick.number_red_bricks -= 1
+        elif self.colour == ORANGE and Brick.number_orange_bricks is not None:
+            Brick.number_orange_bricks -= 1
+        elif self.colour == YELLOW and Brick.number_yellow_bricks is not None:
+            Brick.number_yellow_bricks -= 1
+        elif self.colour == GREEN and Brick.number_green_bricks is not None:
+            Brick.number_green_bricks -= 1
+
+    @staticmethod
+    def count_bricks_left():
+        if Brick.number_green_bricks is not None:
+            if Brick.number_green_bricks <= 0:
+                Brick.number_green_bricks = None
+                return 250
+            else:
+                return 0
+        elif Brick.number_yellow_bricks is not None:
+            if Brick.number_yellow_bricks <= 0:
+                Brick.number_yellow_bricks = None
+                return 500
+            else:
+                return 0
+        elif Brick.number_orange_bricks is not None:
+            if Brick.number_orange_bricks <= 0:
+                Brick.number_orange_bricks = None
+                return 750
+            else:
+                return 0
+        elif Brick.number_red_bricks is not None:
+            if Brick.number_red_bricks <= 0:
+                Brick.number_red_bricks = None
+                return 1000
+            else:
+                return 0
+        else:
+            return 0
 
 
 class Paddle:
@@ -252,8 +297,9 @@ screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
 screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
 screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
 
-ball = Ball(600, 500, 10, (-10, -10), 3)
+ball = Ball(600, 500, 10, (-10, -10), 6)
 paddle = Paddle(300, 600, 200, 20, screen)
+
 bricks = []
 
 loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
@@ -261,24 +307,9 @@ for j in range(1, 9):
     for i in range(1, 16):
         bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
 
+
 lives = 5
-
-
-def update_screen():
-    screen.fill(BLACK)
-    screen_right_wall.update()
-    screen_left_wall.update()
-    screen_top_wall.update()
-    screen.blit(lives_text_surf, (5, 5))
-    paddle.update()
-    for brick in bricks:
-        brick.update()
-        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
-                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
-            bricks.remove(bricks[bricks.index(brick)])
-    ball.update()
-    root.blit(screen, (12, 12))
-
+points = 0
 
 while True:
     for event in pygame.event.get():
@@ -292,7 +323,30 @@ while True:
         ball.centre_x = random.randint(100, 900)
         ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
     lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
+    points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
 
-    update_screen()
+    # <editor-fold desc="Update Screen">
+    screen.fill(BLACK)
+    screen_right_wall.update()
+    screen_left_wall.update()
+    screen_top_wall.update()
+    screen.blit(lives_text_surf, (5, 5))
+    screen.blit(points_text_surf, (800, 5))
+    paddle.update()
+    for brick in bricks:
+        brick.update()
+        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
+                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
+            # row colour points code here:
+            brick.remove_colour()
+            points += Brick.count_bricks_left()
+            points += brick.reward_points
+            bricks.remove(bricks[bricks.index(brick)])
+    ball.update()
+    root.blit(screen, (12, 12))
+    # </editor-fold>
+
     pygame.display.update()
     clock.tick(50)
+
+    del lives_text_surf
