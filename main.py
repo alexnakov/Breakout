@@ -186,7 +186,8 @@ class Brick:
         self.length, self.height = length, height
         self.surface = surface
         self.colour = colour
-        self.reward_points = 5
+        brick_colours = [GREEN, YELLOW, ORANGE, RED]
+        self.reward_points = (brick_colours.index(self.colour) + 1) * 5
 
         self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
         self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
