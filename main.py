@@ -169,13 +169,13 @@ class Ball:
         dx, dy = pygame.Vector2.normalize(self.velocity)
         self.centre_x += dx * self.time
         self.centre_y += dy * self.time
-        pygame.draw.circle(screen, GREEN, (round(self.centre_x), round(self.centre_y)), self.radius)
+        pygame.draw.circle(screen, FUCHSIA, (round(self.centre_x), round(self.centre_y)), self.radius)
 
 
 class Brick:
     """ This will be a rectangle where collisions with a ball is possible """
 
-    def __init__(self, x, y, length, height, surface):
+    def __init__(self, x, y, length, height, surface, colour):
         """
         :param x: x coord of the top left corner
         :param y: y coord of the top right corner
@@ -185,6 +185,7 @@ class Brick:
         self.x, self.y = x, y
         self.length, self.height = length, height
         self.surface = surface
+        self.colour = colour
 
         self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
         self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
@@ -192,7 +193,7 @@ class Brick:
         self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y + self.height, screen)
 
     def draw(self):
-        pygame.draw.rect(self.surface, RED, (self.x, self.y, self.length, self.height))
+        pygame.draw.rect(self.surface, self.colour, (self.x, self.y, self.length, self.height))
 
     def update(self):
         self.draw()
@@ -255,9 +256,10 @@ ball = Ball(600, 500, 10, (-10, -10), 3)
 paddle = Paddle(300, 600, 200, 20, screen)
 bricks = []
 
+loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
 for j in range(1, 9):
     for i in range(1, 16):
-        bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen))
+        bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
 
 lives = 5
 
