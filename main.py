@@ -186,6 +186,7 @@ class Brick:
         self.length, self.height = length, height
         self.surface = surface
         self.colour = colour
+        self.reward_points = 5
 
         self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
         self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
@@ -262,22 +263,7 @@ for j in range(1, 9):
         bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
 
 lives = 5
-
-
-def update_screen():
-    screen.fill(BLACK)
-    screen_right_wall.update()
-    screen_left_wall.update()
-    screen_top_wall.update()
-    screen.blit(lives_text_surf, (5, 5))
-    paddle.update()
-    for brick in bricks:
-        brick.update()
-        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
-                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
-            bricks.remove(bricks[bricks.index(brick)])
-    ball.update()
-    root.blit(screen, (12, 12))
+points = 0
 
 
 while True:
@@ -292,7 +278,27 @@ while True:
         ball.centre_x = random.randint(100, 900)
         ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
     lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
+    points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
 
-    update_screen()
+    # <editor-fold desc="Update Screen">
+    screen.fill(BLACK)
+    screen_right_wall.update()
+    screen_left_wall.update()
+    screen_top_wall.update()
+    screen.blit(lives_text_surf, (5, 5))
+    screen.blit(points_text_surf, (800, 5))
+    paddle.update()
+    for brick in bricks:
+        brick.update()
+        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
+                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
+            points += brick.reward_points
+            bricks.remove(bricks[bricks.index(brick)])
+    ball.update()
+    root.blit(screen, (12, 12))
+    # </editor-fold>
+
     pygame.display.update()
     clock.tick(50)
+
+    del lives_text_surf
