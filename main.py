@@ -3,6 +3,7 @@ import sys
 from pygame.locals import *
 from constants import *
 import random
+pygame.init()
 
 
 class RightToLeftVerticalCollisionLine:
@@ -28,7 +29,7 @@ class RightToLeftVerticalCollisionLine:
     def check_collision(self, ball_object):
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
                 and ball_object.centre_x + ball_object.radius >= self.top_x >= ball_object.centre_x:
-            ball_object.velocity[0] = -ball_object.velocity[0]
+            ball_object.velocity[0] = -abs(ball_object.velocity[0])
             self.colliding = True
             self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
@@ -64,7 +65,7 @@ class LeftToRightVerticalCollisionLine:
     def check_collision(self, ball_object):
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length and \
                 ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x:
-            ball_object.velocity[0] = -ball_object.velocity[0]
+            ball_object.velocity[0] = abs(ball_object.velocity[0])
             self.colliding = True
             self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
@@ -101,7 +102,7 @@ class DownToUpHorizontalCollisionLine:
         if not self.colliding and self.left_x <= ball_object.centre_x <= self.left_x + self.length \
                 and ball_object.centre_y + ball_object.radius >= self.left_y >= ball_object.centre_y:
             if not self.change_colliding_object_velocity:
-                ball_object.velocity[1] = -ball_object.velocity[1]
+                ball_object.velocity[1] = -abs(ball_object.velocity[1])
             else:
                 ball_object.velocity[0], ball_object.velocity[1] = random.uniform(-1.2, 1.2), -1
             self.colliding = True
@@ -138,7 +139,7 @@ class UpToDownHorizontalCollisionLine:
     def check_collision(self, ball_object):
         if not self.colliding and self.left_x <= ball_object.centre_x <= self.left_x + \
                 self.length and ball_object.centre_y - ball_object.radius <= self.left_y <= ball_object.centre_y:
-            ball_object.velocity[1] = -ball_object.velocity[1]
+            ball_object.velocity[1] = abs(ball_object.velocity[1])
             self.colliding = True
             self.number_collisions += 1
         elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
@@ -219,7 +220,7 @@ class Paddle:
         self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y + self.height, screen)
 
     def draw(self):
-        pygame.draw.rect(self.surface, RED, (self.x, self.y, self.length, self.height))
+        pygame.draw.rect(self.surface, BLUE, (self.x, self.y, self.length, self.height))
 
     def update(self):
         mouse_x = pygame.mouse.get_pos()[0]
@@ -236,26 +237,29 @@ class Paddle:
         self.bottom_wall.update()
 
 
-root = pygame.display.set_mode((1020, 624))
+font1 = pygame.font.SysFont("Comic Sans MS", 30)
+
+
+root = pygame.display.set_mode((1020, 654))
+root.fill(GRAY)
 clock = pygame.time.Clock()
 
-root.fill(GRAY)
-
-screen = pygame.Surface((996, 600))
+screen = pygame.Surface((996, 630))
 root.blit(screen, (12, 12))
 
-screen_left_wall = LeftToRightVerticalCollisionLine(600, 0, 0, screen)
-screen_right_wall = RightToLeftVerticalCollisionLine(600, 995, 0, screen)
+screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
+screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
 screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
 
 ball = Ball(600, 500, 10, (-10, -10), 3)
-paddle = Paddle(300, 475, 200, 50, screen)
-
+paddle = Paddle(300, 600, 200, 20, screen)
 bricks = []
 
 for j in range(1, 9):
     for i in range(1, 16):
-        bricks.append(Brick(-60 + 66*i, -6 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen))
+        bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen))
+
+lives = 5
 
 
 def update_screen():
@@ -263,6 +267,7 @@ def update_screen():
     screen_right_wall.update()
     screen_left_wall.update()
     screen_top_wall.update()
+    screen.blit(lives_text_surf, (5, 5))
     paddle.update()
     for brick in bricks:
         brick.update()
@@ -278,6 +283,14 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+
+    if ball.centre_y > 630:
+        lives -= 1
+        ball.centre_y = 500
+        ball.centre_x = random.randint(100, 900)
+        ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
+    lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
+
     update_screen()
     pygame.display.update()
     clock.tick(50)
