@@ -97,11 +97,10 @@ class LeftToRightVerticalCollisionLine:
             ball_object.velocity[0] = -ball_object.velocity[0]
             self.colliding = True
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
-                or not (ball_object.centre_x - ball_object.radius >= self.top_x):
+                or not (ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x):
             self.colliding = False
 
     def update(self):
-
         self.check_collision(ball)
         self.draw()
 
@@ -190,7 +189,7 @@ class Ball:
         dx, dy = pygame.Vector2.normalize(self.velocity)
         self.centre_x += dx * self.time
         self.centre_y += dy * self.time
-        pygame.draw.circle(screen, RED, (round(self.centre_x), round(self.centre_y)), self.radius)
+        pygame.draw.circle(screen, GREEN, (round(self.centre_x), round(self.centre_y)), self.radius)
 
 
 class Brick:
@@ -207,20 +206,20 @@ class Brick:
         self.length, self.height = length, height
         self.surface = surface
 
-        self.left_wall = LeftToRightVerticalCollisionLine(self.height, self.x, self.y, screen)
-        self.right_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
+        self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
+        self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
         self.top_wall = DownToUpHorizontalCollisionLine(self.length, self.x, self.y, screen)
-        self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y, screen)
+        self.bottom_wall = UpToDownHorizontalCollisionLine(self.length, self.x, self.y + self.height, screen)
 
     def draw(self):
-        pygame.draw.rect(self.surface, BLUE, (self.x, self.y, self.length, self.height))
+        pygame.draw.rect(self.surface, RED, (self.x, self.y, self.length, self.height))
 
     def update(self):
-        self.left_wall.check_collision(ball)
-        self.right_wall.check_collision(ball)
-        self.top_wall.check_collision(ball)
-        self.bottom_wall.check_collision(ball)
         self.draw()
+        self.left_wall.update()
+        self.right_wall.update()
+        self.top_wall.update()
+        self.bottom_wall.update()
 
 
 root = pygame.display.set_mode((1020, 624))
@@ -235,12 +234,16 @@ screen_left_wall = LeftToRightVerticalCollisionLine(600, 0, 0, screen)
 screen_right_wall = RightToLeftVerticalCollisionLine(600, 995, 0, screen)
 screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
 
-ball = Ball(50, 50, 10, (-10, -1), 3)
+ball = Ball(600, 500, 10, (-10, -10), 3)
 
-# for j in range(1, 9):
-#     for i in range(1, 16):
-#         screen.blit(box, (-60 + 66*i, -6 + 36*j))
+bricks = []
 
+for j in range(1, 9):
+    for i in range(1, 16):
+        # screen.blit(box, (-60 + 66*i, -6 + 36*j))
+        bricks.append(Brick(-60 + 66*i, -6 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen))
+
+# brick1 = Brick(200, 200, 300, 300, screen)
 
 while True:
     for event in pygame.event.get():
@@ -251,7 +254,10 @@ while True:
     screen_right_wall.update()
     screen_left_wall.update()
     screen_top_wall.update()
+    for brick in bricks:
+        brick.update()
+    # brick1.update()
     ball.update()
     root.blit(screen, (12, 12))
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(50)
