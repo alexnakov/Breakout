@@ -8,25 +8,21 @@ pygame.init()
 
 class Button:
     """ This template will be used to create buttons """
-    def __init__(self, super_surface, x, y, length, height, path_unclicked, path_clicked):
+    def __init__(self, super_surface, x, y, path_unclicked, path_clicked):
         """
         :param super_surface: The surface on which the button will be blit on
         :param x: the x-coord of the top-left corner of the button
         :param y: the y-coord of the top-left corner of the button
-        :param length: The length of the button in pixels
-        :param height: The height of the button in pixels
         :param path_unclicked: The path to the image of the button in its normal state
         :param path_clicked:  The path to the image of the button when is clicked
         """
         self.super_surf = super_surface
         self.x, self.y = x, y
-        self.length, self.height = length, height
-        self.path_unclicked = path_unclicked
-        self.path_clicked = path_clicked
-        self.surf = pygame.Surface((self.length, self.height))
+        self.unclicked_img = pygame.image.load(path_unclicked)
+        self.clicked_img = pygame.image.load(path_clicked)
+        self.length, self.height = self.unclicked_img.get_size()
         self.clicked = False
-        self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-        self.super_surf.blit(self.surf, (self.x, self.y))
+        self.super_surf.blit(self.unclicked_img, (self.x, self.y))
 
     def collide_point(self, x, y):
         if self.x <= x <= self.x + self.length and self.y <= y <= self.y + self.height:
@@ -40,16 +36,13 @@ class Button:
         for event in events:
             if event.type == MOUSEBUTTONDOWN:
                 if self.collide_point(mouse_x, mouse_y):
-                    self.surf.blit(pygame.image.load(self.path_clicked), (0, 0))
-                    self.super_surf.blit(self.surf, (self.x, self.y))
+                    self.super_surf.blit(self.clicked_img, (self.x, self.y))
             elif event.type == MOUSEBUTTONUP:
                 if self.collide_point(mouse_x, mouse_y):
-                    self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-                    self.super_surf.blit(self.surf, (self.x, self.y))
+                    self.super_surf.blit(self.unclicked_img, (self.x, self.y))
                     self.clicked = True
             elif True:
-                self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-                self.super_surf.blit(self.surf, (self.x, self.y))
+                self.super_surf.blit(self.unclicked_img, (self.x, self.y))
 
 
 class RightToLeftVerticalCollisionLine:
@@ -330,10 +323,9 @@ class Paddle:
 
 
 def main_menu():
-    welcome_text = font2.render("Welcome to Breakout !!!", True, WHITE)
+    background = pygame.image.load("startMenuBackground.png")
     main_menu_surface = pygame.Surface((1020, 654))
-    main_menu_surface.blit(welcome_text, (510 - welcome_text.get_size()[0] / 2, 50))
-    start_button = Button(main_menu_surface, 510 - 150, 400, 468, 264, "playButton_U.png", "playButton_C.png")
+    start_button = Button(background, 510 - 150, 400, "playButton_U.png", "playButton_C.png")
     root.blit(main_menu_surface, (0, 0))
     while True:
         events = pygame.event.get()
@@ -343,6 +335,7 @@ def main_menu():
                 sys.exit()
 
         start_button.update(events)
+        main_menu_surface.blit(background, (0, 0))
         root.blit(main_menu_surface, (0, 0))
         if start_button.clicked:
             return
@@ -353,7 +346,7 @@ font1 = pygame.font.SysFont("Comic Sans MS", 30)
 font2 = pygame.font.SysFont("Comic Sans MS", 70)
 font3 = pygame.font.SysFont("Comic Sans MS", 50)
 
-root = pygame.display.set_mode((1020, 654))
+root = pygame.display.set_mode(ROOT_SIZE)
 clock = pygame.time.Clock()
 
 while True:
@@ -381,7 +374,7 @@ while True:
                 pygame.quit()
                 sys.exit()
 
-        if ball.centre_y > 630:
+        if ball.centre_y > SCREEN_HEIGHT:
             lives -= 1
             if lives == 0:
                 def congratulations_screen():
@@ -513,6 +506,8 @@ while True:
         del lives_text_surf
 
     if points == 4000:
+        # noinspection PyUnboundLocalVariable
         congratulations_screen()
     else:
+        # noinspection PyUnboundLocalVariable
         game_over_menu()
