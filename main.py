@@ -312,9 +312,9 @@ class Paddle:
 
 def main_menu():
     """ When the game is run, this menu is the first thing displayed. Rules of the game could be added here """
-    background = pygame.image.load("startMenuBackground.png")
+    background = pygame.image.load("Assets/startMenuBackground.png")
     main_menu_surface = pygame.Surface((1020, 654))
-    start_button = Button(background, 510 - 150, 400, "playButton_U.png", "playButton_C.png")
+    start_button = Button(background, 510 - 150, 400, "Assets/playButton_U.png", "Assets/playButton_C.png")
     root.blit(main_menu_surface, (0, 0))
     while True:
         events = pygame.event.get()
@@ -371,9 +371,9 @@ if __name__ == '__main__':
                     def game_over_menu():
                         """ Screen to be displayed when player loses all lives """
                         player_score = font1.render(f"{points}", True, WHITE)
-                        game_over_surface = pygame.image.load("gameOverBackground.png")
-                        start_again_button = Button(game_over_surface, 289, 475, "startAgain_U.png",
-                                                    "startAgain_C.png")
+                        game_over_surface = pygame.image.load("Assets/gameOverBackground.png")
+                        start_again_button = Button(game_over_surface, 289, 475, "Assets/startAgain_U.png",
+                                                    "Assets/startAgain_C.png")
                         game_over_surface.blit(player_score, (875, 150))
 
                         while True:
@@ -413,7 +413,7 @@ if __name__ == '__main__':
                     if points == HIGHSCORE:  # TODO change for the actual game
                         def congratulations_screen():
                             """ Screen to be displayed when the player breaks all bricks """
-                            game_over_surface = pygame.image.load("congratsBackground.png")
+                            game_over_surface = pygame.image.load("Assets/congratsBackground.png")
                             root.blit(game_over_surface, (0, 0))
                             while True:
                                 events = pygame.event.get()
@@ -442,3 +442,4 @@ if __name__ == '__main__':
         else:
             # noinspection PyUnboundLocalVariable
             game_over_menu()
+
