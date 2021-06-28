@@ -351,87 +351,93 @@ def main_menu():
 
 font1 = pygame.font.SysFont("Comic Sans MS", 30)
 font2 = pygame.font.SysFont("Comic Sans MS", 70)
+font3 = pygame.font.SysFont("Comic Sans MS", 50)
 
 
 root = pygame.display.set_mode((1020, 654))
 clock = pygame.time.Clock()
 
-main_menu()
-
-root.fill(GRAY)
-screen = pygame.Surface((996, 630))
-root.blit(screen, (12, 12))
-screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
-screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
-screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
-ball = Ball(600, 500, 10, (-10, -10), 6)
-paddle = Paddle(300, 600, 200, 20, screen)
-bricks = []
-loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
-for j in range(1, 9):
-    for i in range(1, 16):
-        bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
-lives = 2
-points = 0
-
 while True:
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+    main_menu()
 
-    if ball.centre_y > 630:
-        lives -= 1
-        if lives == 0:
-            def game_over_menu():
-                lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
-                game_over_surface = pygame.Surface((1020, 654))
-                start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
-                                            "startAgain_C.png")
-                game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                while True:
-                    events = pygame.event.get()
-                    for event in events:
-                        if event.type == QUIT:
-                            pygame.quit()
-                            sys.exit()
-
-                    start_again_button.update(events)
-                    root.blit(game_over_surface, (0, 0))
-                    if start_again_button.clicked:
-                        return
-                    pygame.display.update()
-            break
-        ball.centre_y = 500
-        ball.centre_x = random.randint(100, 900)
-        ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
-    lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
-    points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
-
-    # <editor-fold desc="Update Screen">
-    screen.fill(BLACK)
-    screen_right_wall.update()
-    screen_left_wall.update()
-    screen_top_wall.update()
-    screen.blit(lives_text_surf, (5, 5))
-    screen.blit(points_text_surf, (800, 5))
-    paddle.update()
-    for brick in bricks:
-        brick.update()
-        if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
-                brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
-            # row colour points code here:
-            brick.remove_colour()
-            points += Brick.count_bricks_left()
-            points += brick.reward_points
-            bricks.remove(bricks[bricks.index(brick)])
-    ball.update()
+    root.fill(GRAY)
+    screen = pygame.Surface((996, 630))
     root.blit(screen, (12, 12))
-    # </editor-fold>
+    screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
+    screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
+    screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
+    ball = Ball(600, 500, 10, (-10, -10), 6)
+    paddle = Paddle(300, 600, 200, 20, screen)
+    bricks = []
+    loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
+    for j in range(1, 9):
+        for i in range(1, 16):
+            bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
+    lives = 2
+    points = 0
 
-    pygame.display.update()
-    clock.tick(50)
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
 
-    del lives_text_surf
+        if ball.centre_y > 630:
+            lives -= 1
+            if lives == 0:
+                def game_over_menu():
+                    lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
+                    highscore = font3.render(f"Your highest score was {points} points", True, WHITE)
+                    challenge_text = font3.render("Try to beat it again!", True, WHITE)
+                    game_over_surface = pygame.Surface((1020, 654))
+                    start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                                                "startAgain_C.png")
+                    game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
+                    game_over_surface.blit(highscore, (510 - highscore.get_size()[0] / 2, 170))
+                    game_over_surface.blit(challenge_text, (510 - challenge_text.get_size()[0] / 2, 250))
+                    while True:
+                        events = pygame.event.get()
+                        for event in events:
+                            if event.type == QUIT:
+                                pygame.quit()
+                                sys.exit()
 
-game_over_menu()
+                        start_again_button.update(events)
+                        root.blit(game_over_surface, (0, 0))
+                        if start_again_button.clicked:
+                            return
+                        pygame.display.update()
+                break
+            ball.centre_y = 500
+            ball.centre_x = random.randint(100, 900)
+            ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
+        lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
+        points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
+
+        # <editor-fold desc="Update Screen">
+        screen.fill(BLACK)
+        screen_right_wall.update()
+        screen_left_wall.update()
+        screen_top_wall.update()
+        screen.blit(lives_text_surf, (5, 5))
+        screen.blit(points_text_surf, (800, 5))
+        paddle.update()
+        for brick in bricks:
+            brick.update()
+            if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
+                    brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
+                # row colour points code here:
+                brick.remove_colour()
+                points += Brick.count_bricks_left()
+                points += brick.reward_points
+                bricks.remove(bricks[bricks.index(brick)])
+        ball.update()
+        root.blit(screen, (12, 12))
+        # </editor-fold>
+
+        pygame.display.update()
+        clock.tick(50)
+
+        del lives_text_surf
+
+    game_over_menu()
