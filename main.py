@@ -6,6 +6,52 @@ import random
 pygame.init()
 
 
+class Button:
+    """ This template will be used to create buttons """
+    def __init__(self, super_surface, x, y, length, height, path_unclicked, path_clicked):
+        """
+        :param super_surface: The surface on which the button will be blit on
+        :param x: the x-coord of the top-left corner of the button
+        :param y: the y-coord of the top-left corner of the button
+        :param length: The length of the button in pixels
+        :param height: The height of the button in pixels
+        :param path_unclicked: The path to the image of the button in its normal state
+        :param path_clicked:  The path to the image of the button when is clicked
+        """
+        self.super_surf = super_surface
+        self.x, self.y = x, y
+        self.length, self.height = length, height
+        self.path_unclicked = path_unclicked
+        self.path_clicked = path_clicked
+        self.surf = pygame.Surface((self.length, self.height))
+        self.clicked = False
+        self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
+        self.super_surf.blit(self.surf, (self.x, self.y))
+
+    def collide_point(self, x, y):
+        if self.x <= x <= self.x + self.length and self.y <= y <= self.y + self.height:
+            return True
+        else:
+            return False
+
+    def update(self, events):
+        self.clicked = False
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        for event in events:
+            if event.type == MOUSEBUTTONDOWN:
+                if self.collide_point(mouse_x, mouse_y):
+                    self.surf.blit(pygame.image.load(self.path_clicked), (0, 0))
+                    self.super_surf.blit(self.surf, (self.x, self.y))
+            elif event.type == MOUSEBUTTONUP:
+                if self.collide_point(mouse_x, mouse_y):
+                    self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
+                    self.super_surf.blit(self.surf, (self.x, self.y))
+                    self.clicked = True
+            elif True:
+                self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
+                self.super_surf.blit(self.surf, (self.x, self.y))
+
+
 class RightToLeftVerticalCollisionLine:
     """ This is a vertical which allows balls incoming from the right ot re-bounce to the left. """
 
@@ -283,32 +329,49 @@ class Paddle:
         self.bottom_wall.update()
 
 
+def main_menu():
+    welcome_text = font2.render("Welcome to Breakout !!!", True, WHITE)
+    main_menu_surface = pygame.Surface((1020, 654))
+    main_menu_surface.blit(welcome_text, (510 - welcome_text.get_size()[0] / 2, 50))
+    start_button = Button(main_menu_surface, 510 - 150, 400, 468, 264, "playButton_U.png", "playButton_C.png")
+    root.blit(main_menu_surface, (0, 0))
+    while True:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+        start_button.update(events)
+        root.blit(main_menu_surface, (0, 0))
+        if start_button.clicked:
+            return
+        pygame.display.update()
+
+
 font1 = pygame.font.SysFont("Comic Sans MS", 30)
+font2 = pygame.font.SysFont("Comic Sans MS", 70)
 
 
 root = pygame.display.set_mode((1020, 654))
-root.fill(GRAY)
 clock = pygame.time.Clock()
 
+main_menu()
+
+root.fill(GRAY)
 screen = pygame.Surface((996, 630))
 root.blit(screen, (12, 12))
-
 screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
 screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
 screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
-
 ball = Ball(600, 500, 10, (-10, -10), 6)
 paddle = Paddle(300, 600, 200, 20, screen)
-
 bricks = []
-
 loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
 for j in range(1, 9):
     for i in range(1, 16):
         bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
-
-
-lives = 5
+lives = 2
 points = 0
 
 while True:
@@ -319,6 +382,26 @@ while True:
 
     if ball.centre_y > 630:
         lives -= 1
+        if lives == 0:
+            def game_over_menu():
+                lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
+                game_over_surface = pygame.Surface((1020, 654))
+                start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                                            "startAgain_C.png")
+                game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
+                while True:
+                    events = pygame.event.get()
+                    for event in events:
+                        if event.type == QUIT:
+                            pygame.quit()
+                            sys.exit()
+
+                    start_again_button.update(events)
+                    root.blit(game_over_surface, (0, 0))
+                    if start_again_button.clicked:
+                        return
+                    pygame.display.update()
+            break
         ball.centre_y = 500
         ball.centre_x = random.randint(100, 900)
         ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
@@ -350,3 +433,5 @@ while True:
     clock.tick(50)
 
     del lives_text_surf
+
+game_over_menu()
