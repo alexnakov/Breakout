@@ -356,7 +356,7 @@ while True:
     screen = pygame.Surface(SCREEN_SIZE)
     root.blit(screen, (WALL_WIDTH, WALL_WIDTH))
     screen_left_wall = LeftToRightVerticalCollisionLine(SCREEN_HEIGHT, 0, 0, screen)
-    screen_right_wall = RightToLeftVerticalCollisionLine(SCREEN_HEIGHT, SCREEN_WIDTH, 0, screen)
+    screen_right_wall = RightToLeftVerticalCollisionLine(SCREEN_HEIGHT, SCREEN_WIDTH - 1, 0, screen)
     screen_top_wall = UpToDownHorizontalCollisionLine(SCREEN_WIDTH, 0, 0, screen)
     ball = Ball(600, 500, 10, (-10, -10), 5)
     paddle = Paddle(300, 600, 200, 20, screen)
@@ -365,7 +365,7 @@ while True:
     for j in range(1, 9):
         for i in range(1, 16):
             bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
-    lives = 5
+    lives = 1  # TODO change this later for actual game
     points = 0
 
     while True:
@@ -401,15 +401,12 @@ while True:
                         pygame.display.update()
 
                 def game_over_menu():
-                    lives_lost_text = font1.render("You lost all of your lives!", True, WHITE)
-                    highscore = font1.render(f"Your highest score was {points} points", True, WHITE)
-                    challenge_text = font1.render("Try to beat it again!", True, WHITE)
-                    game_over_surface = pygame.Surface((1020, 654))
-                    start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                    highscore = font1.render(f"{points}", True, WHITE)
+                    game_over_surface = pygame.image.load("gameOverBackground.png")
+                    start_again_button = Button(game_over_surface, 289, 475, "startAgain_U.png",
                                                 "startAgain_C.png")
-                    game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                    game_over_surface.blit(highscore, (510 - highscore.get_size()[0] / 2, 170))
-                    game_over_surface.blit(challenge_text, (510 - challenge_text.get_size()[0] / 2, 250))
+                    game_over_surface.blit(highscore, (875, 150))
+
                     while True:
                         events = pygame.event.get()
                         for event in events:
