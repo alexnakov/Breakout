@@ -8,25 +8,21 @@ pygame.init()
 
 class Button:
     """ This template will be used to create buttons """
-    def __init__(self, super_surface, x, y, length, height, path_unclicked, path_clicked):
+    def __init__(self, super_surface, x, y, path_unclicked, path_clicked):
         """
         :param super_surface: The surface on which the button will be blit on
         :param x: the x-coord of the top-left corner of the button
         :param y: the y-coord of the top-left corner of the button
-        :param length: The length of the button in pixels
-        :param height: The height of the button in pixels
         :param path_unclicked: The path to the image of the button in its normal state
         :param path_clicked:  The path to the image of the button when is clicked
         """
         self.super_surf = super_surface
         self.x, self.y = x, y
-        self.length, self.height = length, height
-        self.path_unclicked = path_unclicked
-        self.path_clicked = path_clicked
-        self.surf = pygame.Surface((self.length, self.height))
+        self.unclicked_img = pygame.image.load(path_unclicked)
+        self.clicked_img = pygame.image.load(path_clicked)
+        self.length, self.height = self.unclicked_img.get_size()
         self.clicked = False
-        self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-        self.super_surf.blit(self.surf, (self.x, self.y))
+        self.super_surf.blit(self.unclicked_img, (self.x, self.y))
 
     def collide_point(self, x, y):
         if self.x <= x <= self.x + self.length and self.y <= y <= self.y + self.height:
@@ -40,70 +36,62 @@ class Button:
         for event in events:
             if event.type == MOUSEBUTTONDOWN:
                 if self.collide_point(mouse_x, mouse_y):
-                    self.surf.blit(pygame.image.load(self.path_clicked), (0, 0))
-                    self.super_surf.blit(self.surf, (self.x, self.y))
+                    self.super_surf.blit(self.clicked_img, (self.x, self.y))
             elif event.type == MOUSEBUTTONUP:
                 if self.collide_point(mouse_x, mouse_y):
-                    self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-                    self.super_surf.blit(self.surf, (self.x, self.y))
+                    self.super_surf.blit(self.unclicked_img, (self.x, self.y))
                     self.clicked = True
             elif True:
-                self.surf.blit(pygame.image.load(self.path_unclicked), (0, 0))
-                self.super_surf.blit(self.surf, (self.x, self.y))
+                self.super_surf.blit(self.unclicked_img, (self.x, self.y))
 
 
 class RightToLeftVerticalCollisionLine:
-    """ This is a vertical which allows balls incoming from the right ot re-bounce to the left. """
+    """ This is a vertical line which allows balls incoming from the left ot re-bounce back. """
 
     def __init__(self, length, x, y, surface):
         """
-        The vertical line will be 1 px long for now
         :param length: Length of line in pixels
-        :param x: The x coord of the left end
-        :param y: The y coord of the left end
-        :param surface: The surface on which the coordinates to act on the walls to be blit
+        :param x: The x coord of the top end
+        :param y: The y coord of the top end
+        :param surface: The surface on which the colliding object acts by
         """
         self.length = length
         self.top_x, self.top_y = x, y
         self.surface = surface
         self.colliding = False
-        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
 
     def check_collision(self, ball_object):
+        """ Change the ball's velocity if the ball intersects the line from the left """
         if not self.colliding and self.top_y <= ball_object.centre_y <= self.top_y + self.length \
                 and ball_object.centre_x + ball_object.radius >= self.top_x >= ball_object.centre_x:
             ball_object.velocity[0] = -abs(ball_object.velocity[0])
             self.colliding = True
-            self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
                 or not (ball_object.centre_x + ball_object.radius >= self.top_x):
             self.colliding = False
 
     def update(self):
-
+        """ To be called once every game loop """
         self.check_collision(ball)
-        self.draw()
 
 
 class LeftToRightVerticalCollisionLine:
-    """ This is a vertical line which will act as the paddle to test collisions. """
+    """ This is a vertical line which allows incoming balls from the right to re-bounce back"""
 
     def __init__(self, length, x, y, surface):
         """
-        The vertical line will be 1 px long for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
-                :param surface: The surface on which the coordinates to act on the walls to be blit
+        :param surface: The surface on which the colliding object acts by
         """
         self.length = length
         self.top_x, self.top_y = x, y
         self.surface = surface
         self.colliding = False
-        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.top_x, self.top_y), (self.top_x, self.top_y + self.length))
@@ -113,33 +101,29 @@ class LeftToRightVerticalCollisionLine:
                 ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x:
             ball_object.velocity[0] = abs(ball_object.velocity[0])
             self.colliding = True
-            self.number_collisions += 1
         elif self.colliding and not (self.top_y <= ball_object.centre_y <= self.top_y + self.length) \
                 or not (ball_object.centre_x - ball_object.radius <= self.top_x <= ball_object.centre_x):
             self.colliding = False
 
     def update(self):
         self.check_collision(ball)
-        self.draw()
 
 
 class DownToUpHorizontalCollisionLine:
-    """ This is a horizontal line which will act as the paddle to test collisions. """
+    """ This is a horizontal line which allows balls incoming from above to re-bounce back up. """
 
     def __init__(self, length, x, y, surface, change_colliding_object_velocity=None):
         """
-        The horizontal line will be 1 px long for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
-        :param surface: The surface on which the coordinates to act on the walls to be blit
+        :param surface: The surface on which the colliding object acts by
         """
         self.length = length
         self.left_x, self.left_y = x, y
         self.surface = surface
         self.change_colliding_object_velocity = change_colliding_object_velocity
         self.colliding = False
-        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
@@ -152,32 +136,28 @@ class DownToUpHorizontalCollisionLine:
             else:
                 ball_object.velocity[0], ball_object.velocity[1] = random.uniform(-1.2, 1.2), -1
             self.colliding = True
-            self.number_collisions += 1
         elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
                 or not (ball_object.centre_y + ball_object.radius >= self.left_y):
             self.colliding = False
 
     def update(self):
         self.check_collision(ball)
-        self.draw()
 
 
 class UpToDownHorizontalCollisionLine:
-    """ This is a horizontal line which allows balls income from beneath to re-bounce back down """
+    """ This is a horizontal line which allows balls incoming from beneath to re-bounce back down """
 
     def __init__(self, length, x, y, surface):
         """
-        The horizontal line will be 1 px wide for now
         :param length: Length of line in pixels
         :param x: The x coord of the left end
         :param y: The y coord of the left end
-        :param surface: The surface on which the coordinates to act on the walls to be blit
+        :param surface: The surface on which the colliding object acts by
         """
         self.length = length
         self.left_x, self.left_y = x, y
         self.surface = surface
         self.colliding = False
-        self.number_collisions = 0
 
     def draw(self):
         pygame.draw.line(self.surface, YELLOW, (self.left_x, self.left_y), (self.left_x + self.length, self.left_y))
@@ -187,14 +167,12 @@ class UpToDownHorizontalCollisionLine:
                 self.length and ball_object.centre_y - ball_object.radius <= self.left_y <= ball_object.centre_y:
             ball_object.velocity[1] = abs(ball_object.velocity[1])
             self.colliding = True
-            self.number_collisions += 1
         elif self.colliding and not (self.left_x <= ball_object.centre_x <= self.left_x + self.length) \
                 or not (ball_object.centre_y - ball_object.radius <= self.left_y):
             self.colliding = False
 
     def update(self):
         self.check_collision(ball)
-        self.draw()
 
 
 class Ball:
@@ -220,7 +198,7 @@ class Ball:
 
 class Brick:
     """ This will be a rectangle where collisions with a ball is possible """
-    number_red_bricks = 30
+    number_red_bricks = 30  # To be used for rewarding when a player eliminates a colour
     number_orange_bricks = 30
     number_yellow_bricks = 30
     number_green_bricks = 30
@@ -266,6 +244,7 @@ class Brick:
 
     @staticmethod
     def count_bricks_left():
+        """ Gives points to the player for every colour eliminated """
         if Brick.number_green_bricks is not None:
             if Brick.number_green_bricks <= 0:
                 Brick.number_green_bricks = None
@@ -306,6 +285,7 @@ class Paddle:
         self.length, self.height = length, height
         self.surface = surface
 
+        # A paddle is a box made from collision walls
         self.right_wall = LeftToRightVerticalCollisionLine(self.height, self.x + self.length, self.y, screen)
         self.left_wall = RightToLeftVerticalCollisionLine(self.height, self.x, self.y, screen)
         self.top_wall = DownToUpHorizontalCollisionLine(self.length, self.x, self.y, screen, True)
@@ -316,8 +296,9 @@ class Paddle:
 
     def update(self):
         mouse_x = pygame.mouse.get_pos()[0]
-        self.x = mouse_x - self.length / 2
-        self.top_wall.left_x = mouse_x - self.length / 2
+        self.x = mouse_x - self.length / 2  # Moves the x position for the rectangle
+
+        self.top_wall.left_x = mouse_x - self.length / 2  # Moves the x position for the Collision Walls
         self.left_wall.top_x = mouse_x - self.length / 2
         self.bottom_wall.left_x = mouse_x - self.length / 2
         self.right_wall.top_x = mouse_x + self.length / 2
@@ -330,10 +311,10 @@ class Paddle:
 
 
 def main_menu():
-    welcome_text = font2.render("Welcome to Breakout !!!", True, WHITE)
+    """ When the game is run, this menu is the first thing displayed. Rules of the game could be added here """
+    background = pygame.image.load("startMenuBackground.png")
     main_menu_surface = pygame.Surface((1020, 654))
-    main_menu_surface.blit(welcome_text, (510 - welcome_text.get_size()[0] / 2, 50))
-    start_button = Button(main_menu_surface, 510 - 150, 400, 468, 264, "playButton_U.png", "playButton_C.png")
+    start_button = Button(background, 510 - 150, 400, "playButton_U.png", "playButton_C.png")
     root.blit(main_menu_surface, (0, 0))
     while True:
         events = pygame.event.get()
@@ -343,149 +324,58 @@ def main_menu():
                 sys.exit()
 
         start_button.update(events)
+        main_menu_surface.blit(background, (0, 0))
         root.blit(main_menu_surface, (0, 0))
         if start_button.clicked:
             return
         pygame.display.update()
 
 
-font1 = pygame.font.SysFont("Comic Sans MS", 30)
-font2 = pygame.font.SysFont("Comic Sans MS", 70)
-font3 = pygame.font.SysFont("Comic Sans MS", 50)
+if __name__ == '__main__':
+    font1 = pygame.font.SysFont("Comic Sans MS", 30)
+    font2 = pygame.font.SysFont("Comic Sans MS", 70)
+    font3 = pygame.font.SysFont("Comic Sans MS", 50)
 
-root = pygame.display.set_mode((1020, 654))
-clock = pygame.time.Clock()
-
-while True:
-    main_menu()
-
-    root.fill(GRAY)
-    screen = pygame.Surface(SCREEN_SIZE)
-    root.blit(screen, (WALL_WIDTH, WALL_WIDTH))
-    screen_left_wall = LeftToRightVerticalCollisionLine(SCREEN_HEIGHT, 0, 0, screen)
-    screen_right_wall = RightToLeftVerticalCollisionLine(SCREEN_HEIGHT, SCREEN_WIDTH, 0, screen)
-    screen_top_wall = UpToDownHorizontalCollisionLine(SCREEN_WIDTH, 0, 0, screen)
-    ball = Ball(600, 500, 10, (-10, -10), 5)
-    paddle = Paddle(300, 600, 200, 20, screen)
-    bricks = []
-    loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
-    for j in range(1, 9):
-        for i in range(1, 16):
-            bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
-    lives = 5
-    points = 0
+    root = pygame.display.set_mode(ROOT_SIZE)
+    clock = pygame.time.Clock()
 
     while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+        main_menu()
 
-        if ball.centre_y > 630:
-            lives -= 1
-            if lives == 0:
-                def congratulations_screen():
-                    lives_lost_text = font1.render("You got the maximum possible score!", True, WHITE)
-                    challenge_text1 = font1.render("Show this game to your friends", True, WHITE)
-                    challenge_text2 = font1.render("and see if they can beat your score", True, WHITE)
-                    game_over_surface = pygame.Surface((1020, 654))
-                    start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
-                                                "startAgain_C.png")
-                    game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                    game_over_surface.blit(challenge_text1, (510 - challenge_text1.get_size()[0] / 2, 170))
-                    game_over_surface.blit(challenge_text2, (510 - challenge_text2.get_size()[0] / 2, 250))
-                    while True:
-                        events = pygame.event.get()
-                        for event in events:
-                            if event.type == QUIT:
-                                pygame.quit()
-                                sys.exit()
+        # Game set up
+        root.fill(GRAY)
+        screen = pygame.Surface(SCREEN_SIZE)
+        root.blit(screen, (WALL_WIDTH, WALL_WIDTH))
+        screen_left_wall = LeftToRightVerticalCollisionLine(SCREEN_HEIGHT, 0, 0, screen)
+        screen_right_wall = RightToLeftVerticalCollisionLine(SCREEN_HEIGHT, SCREEN_WIDTH - 1, 0, screen)
+        screen_top_wall = UpToDownHorizontalCollisionLine(SCREEN_WIDTH, 0, 0, screen)
+        ball = Ball(600, 500, 10, (-10, -10), 5)
+        paddle = Paddle(300, 600, 200, 20, screen)
+        bricks = []
+        loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
+        for j in range(1, 9):
+            for i in range(1, 16):
+                bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
+        lives = 5  # TODO change this later for actual game
+        points = 0
 
-                        start_again_button.update(events)
-                        root.blit(game_over_surface, (0, 0))
-                        if start_again_button.clicked:
-                            return
-                        pygame.display.update()
+        while True:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-                def game_over_menu():
-                    lives_lost_text = font1.render("You lost all of your lives!", True, WHITE)
-                    highscore = font1.render(f"Your highest score was {points} points", True, WHITE)
-                    challenge_text = font1.render("Try to beat it again!", True, WHITE)
-                    game_over_surface = pygame.Surface((1020, 654))
-                    start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
-                                                "startAgain_C.png")
-                    game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                    game_over_surface.blit(highscore, (510 - highscore.get_size()[0] / 2, 170))
-                    game_over_surface.blit(challenge_text, (510 - challenge_text.get_size()[0] / 2, 250))
-                    while True:
-                        events = pygame.event.get()
-                        for event in events:
-                            if event.type == QUIT:
-                                pygame.quit()
-                                sys.exit()
-
-                        start_again_button.update(events)
-                        root.blit(game_over_surface, (0, 0))
-                        if start_again_button.clicked:
-                            return
-                        pygame.display.update()
-                break
-            ball.centre_y = 500
-            ball.centre_x = random.randint(100, 900)
-            ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
-        lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
-        points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
-
-        screen.fill(BLACK)
-        screen_right_wall.update()
-        screen_left_wall.update()
-        screen_top_wall.update()
-        screen.blit(lives_text_surf, (10, 5))
-        screen.blit(points_text_surf, (800, 5))
-        paddle.update()
-        to_break_loop = False
-        for brick in bricks:
-            brick.update()
-            if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
-                    brick.left_wall.number_collisions, brick.right_wall.number_collisions]):
-                # row colour points code here:
-                brick.remove_colour()
-                points += Brick.count_bricks_left()
-                points += brick.reward_points
-                if points == 4000:
-                    def congratulations_screen():
-                        lives_lost_text = font1.render("You got the maximum possible score!", True, WHITE)
-                        challenge_text1 = font1.render("Show this game to your friends", True, WHITE)
-                        challenge_text2 = font1.render("and see if they can beat your score", True, WHITE)
-                        game_over_surface = pygame.Surface((1020, 654))
-                        start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
-                                                    "startAgain_C.png")
-                        game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                        game_over_surface.blit(challenge_text1, (510 - challenge_text1.get_size()[0] / 2, 170))
-                        game_over_surface.blit(challenge_text2, (510 - challenge_text2.get_size()[0] / 2, 250))
-                        while True:
-                            events = pygame.event.get()
-                            for event in events:
-                                if event.type == QUIT:
-                                    pygame.quit()
-                                    sys.exit()
-
-                            start_again_button.update(events)
-                            root.blit(game_over_surface, (0, 0))
-                            if start_again_button.clicked:
-                                return
-                            pygame.display.update()
-
+            if ball.centre_y > SCREEN_HEIGHT:
+                lives -= 1
+                if lives == 0:
                     def game_over_menu():
-                        lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
-                        highscore = font3.render(f"Your highest score was {points} points", True, WHITE)
-                        challenge_text = font3.render("Try to beat it again!", True, WHITE)
-                        game_over_surface = pygame.Surface((1020, 654))
-                        start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                        """ Screen to be displayed when player loses all lives """
+                        player_score = font1.render(f"{points}", True, WHITE)
+                        game_over_surface = pygame.image.load("gameOverBackground.png")
+                        start_again_button = Button(game_over_surface, 289, 475, "startAgain_U.png",
                                                     "startAgain_C.png")
-                        game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
-                        game_over_surface.blit(highscore, (510 - highscore.get_size()[0] / 2, 170))
-                        game_over_surface.blit(challenge_text, (510 - challenge_text.get_size()[0] / 2, 250))
+                        game_over_surface.blit(player_score, (875, 150))
+
                         while True:
                             events = pygame.event.get()
                             for event in events:
@@ -498,21 +388,57 @@ while True:
                             if start_again_button.clicked:
                                 return
                             pygame.display.update()
-
-                    to_break_loop = True
                     break
-                bricks.remove(bricks[bricks.index(brick)])
-        if to_break_loop:
-            break
-        ball.update()
-        root.blit(screen, (12, 12))
+                ball.centre_y = 500
+                ball.centre_x = random.randint(100, 900)
+                ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
+            lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
+            points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
 
-        pygame.display.update()
-        clock.tick(50)
+            screen.fill(BLACK)
+            screen_right_wall.update()
+            screen_left_wall.update()
+            screen_top_wall.update()
+            screen.blit(lives_text_surf, (10, 5))
+            screen.blit(points_text_surf, (800, 5))
+            paddle.update()
+            to_break_loop = False
+            for brick in bricks:
+                brick.update()
+                if any([brick.bottom_wall.colliding, brick.top_wall.colliding,
+                        brick.left_wall.colliding, brick.right_wall.colliding]):
+                    brick.remove_colour()
+                    points += Brick.count_bricks_left()
+                    points += brick.reward_points
+                    if points == HIGHSCORE:  # TODO change for the actual game
+                        def congratulations_screen():
+                            """ Screen to be displayed when the player breaks all bricks """
+                            game_over_surface = pygame.image.load("congratsBackground.png")
+                            root.blit(game_over_surface, (0, 0))
+                            while True:
+                                events = pygame.event.get()
+                                for event in events:
+                                    if event.type == QUIT:
+                                        pygame.quit()
+                                        sys.exit()
 
-        del lives_text_surf
+                                root.blit(game_over_surface, (0, 0))
+                                pygame.display.update()
 
-    if points == 4000:
-        congratulations_screen()
-    else:
-        game_over_menu()
+                        to_break_loop = True
+                        break
+                    bricks.remove(bricks[bricks.index(brick)])
+            if to_break_loop:
+                break
+            ball.update()
+            root.blit(screen, (12, 12))
+
+            pygame.display.update()
+            clock.tick(50)
+
+        if points == HIGHSCORE:
+            # noinspection PyUnboundLocalVariable
+            congratulations_screen()
+        else:
+            # noinspection PyUnboundLocalVariable
+            game_over_menu()
