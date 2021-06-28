@@ -366,14 +366,14 @@ while True:
     screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
     screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
     screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
-    ball = Ball(600, 500, 10, (-10, -10), 6)
+    ball = Ball(600, 500, 10, (-10, -10), 5)
     paddle = Paddle(300, 600, 200, 20, screen)
     bricks = []
     loop_colour = [RED, RED, ORANGE, ORANGE, YELLOW, YELLOW, GREEN, GREEN]
     for j in range(1, 9):
         for i in range(1, 16):
             bricks.append(Brick(-60 + 66*i, 24 + 36*j, BRICK_LENGTH, BRICK_HEIGHT, screen, loop_colour[j-1]))
-    lives = 2
+    lives = 5
     points = 0
 
     while True:
@@ -385,10 +385,33 @@ while True:
         if ball.centre_y > 630:
             lives -= 1
             if lives == 0:
+                def congratulations_screen():
+                    lives_lost_text = font1.render("You got the maximum possible score!", True, WHITE)
+                    challenge_text1 = font1.render("Show this game to your friends", True, WHITE)
+                    challenge_text2 = font1.render("and see if they can beat your score", True, WHITE)
+                    game_over_surface = pygame.Surface((1020, 654))
+                    start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                                                "startAgain_C.png")
+                    game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
+                    game_over_surface.blit(challenge_text1, (510 - challenge_text1.get_size()[0] / 2, 170))
+                    game_over_surface.blit(challenge_text2, (510 - challenge_text2.get_size()[0] / 2, 250))
+                    while True:
+                        events = pygame.event.get()
+                        for event in events:
+                            if event.type == QUIT:
+                                pygame.quit()
+                                sys.exit()
+
+                        start_again_button.update(events)
+                        root.blit(game_over_surface, (0, 0))
+                        if start_again_button.clicked:
+                            return
+                        pygame.display.update()
+
                 def game_over_menu():
-                    lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
-                    highscore = font3.render(f"Your highest score was {points} points", True, WHITE)
-                    challenge_text = font3.render("Try to beat it again!", True, WHITE)
+                    lives_lost_text = font1.render("You lost all of your lives!", True, WHITE)
+                    highscore = font1.render(f"Your highest score was {points} points", True, WHITE)
+                    challenge_text = font1.render("Try to beat it again!", True, WHITE)
                     game_over_surface = pygame.Surface((1020, 654))
                     start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
                                                 "startAgain_C.png")
@@ -422,6 +445,7 @@ while True:
         screen.blit(lives_text_surf, (5, 5))
         screen.blit(points_text_surf, (800, 5))
         paddle.update()
+        to_break_loop = False
         for brick in bricks:
             brick.update()
             if any([brick.bottom_wall.number_collisions, brick.top_wall.number_collisions,
@@ -430,7 +454,58 @@ while True:
                 brick.remove_colour()
                 points += Brick.count_bricks_left()
                 points += brick.reward_points
+                if points == 4000:
+                    def congratulations_screen():
+                        lives_lost_text = font1.render("You got the maximum possible score!", True, WHITE)
+                        challenge_text1 = font1.render("Show this game to your friends", True, WHITE)
+                        challenge_text2 = font1.render("and see if they can beat your score", True, WHITE)
+                        game_over_surface = pygame.Surface((1020, 654))
+                        start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                                                    "startAgain_C.png")
+                        game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
+                        game_over_surface.blit(challenge_text1, (510 - challenge_text1.get_size()[0] / 2, 170))
+                        game_over_surface.blit(challenge_text2, (510 - challenge_text2.get_size()[0] / 2, 250))
+                        while True:
+                            events = pygame.event.get()
+                            for event in events:
+                                if event.type == QUIT:
+                                    pygame.quit()
+                                    sys.exit()
+
+                            start_again_button.update(events)
+                            root.blit(game_over_surface, (0, 0))
+                            if start_again_button.clicked:
+                                return
+                            pygame.display.update()
+
+                    def game_over_menu():
+                        lives_lost_text = font2.render("You lost all of your lives!", True, WHITE)
+                        highscore = font3.render(f"Your highest score was {points} points", True, WHITE)
+                        challenge_text = font3.render("Try to beat it again!", True, WHITE)
+                        game_over_surface = pygame.Surface((1020, 654))
+                        start_again_button = Button(game_over_surface, 510 - 223, 475, 450, 120, "startAgain_U.png",
+                                                    "startAgain_C.png")
+                        game_over_surface.blit(lives_lost_text, (510 - lives_lost_text.get_size()[0] / 2, 60))
+                        game_over_surface.blit(highscore, (510 - highscore.get_size()[0] / 2, 170))
+                        game_over_surface.blit(challenge_text, (510 - challenge_text.get_size()[0] / 2, 250))
+                        while True:
+                            events = pygame.event.get()
+                            for event in events:
+                                if event.type == QUIT:
+                                    pygame.quit()
+                                    sys.exit()
+
+                            start_again_button.update(events)
+                            root.blit(game_over_surface, (0, 0))
+                            if start_again_button.clicked:
+                                return
+                            pygame.display.update()
+
+                    to_break_loop = True
+                    break
                 bricks.remove(bricks[bricks.index(brick)])
+        if to_break_loop:
+            break
         ball.update()
         root.blit(screen, (12, 12))
         # </editor-fold>
@@ -440,4 +515,7 @@ while True:
 
         del lives_text_surf
 
-    game_over_menu()
+    if points == 4000:
+        congratulations_screen()
+    else:
+        game_over_menu()
