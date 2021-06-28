@@ -353,7 +353,6 @@ font1 = pygame.font.SysFont("Comic Sans MS", 30)
 font2 = pygame.font.SysFont("Comic Sans MS", 70)
 font3 = pygame.font.SysFont("Comic Sans MS", 50)
 
-
 root = pygame.display.set_mode((1020, 654))
 clock = pygame.time.Clock()
 
@@ -361,11 +360,11 @@ while True:
     main_menu()
 
     root.fill(GRAY)
-    screen = pygame.Surface((996, 630))
-    root.blit(screen, (12, 12))
-    screen_left_wall = LeftToRightVerticalCollisionLine(630, 0, 0, screen)
-    screen_right_wall = RightToLeftVerticalCollisionLine(630, 995, 0, screen)
-    screen_top_wall = UpToDownHorizontalCollisionLine(996, 0, 0, screen)
+    screen = pygame.Surface(SCREEN_SIZE)
+    root.blit(screen, (WALL_WIDTH, WALL_WIDTH))
+    screen_left_wall = LeftToRightVerticalCollisionLine(SCREEN_HEIGHT, 0, 0, screen)
+    screen_right_wall = RightToLeftVerticalCollisionLine(SCREEN_HEIGHT, SCREEN_WIDTH, 0, screen)
+    screen_top_wall = UpToDownHorizontalCollisionLine(SCREEN_WIDTH, 0, 0, screen)
     ball = Ball(600, 500, 10, (-10, -10), 5)
     paddle = Paddle(300, 600, 200, 20, screen)
     bricks = []
@@ -437,12 +436,11 @@ while True:
         lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
         points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
 
-        # <editor-fold desc="Update Screen">
         screen.fill(BLACK)
         screen_right_wall.update()
         screen_left_wall.update()
         screen_top_wall.update()
-        screen.blit(lives_text_surf, (5, 5))
+        screen.blit(lives_text_surf, (10, 5))
         screen.blit(points_text_surf, (800, 5))
         paddle.update()
         to_break_loop = False
@@ -508,7 +506,6 @@ while True:
             break
         ball.update()
         root.blit(screen, (12, 12))
-        # </editor-fold>
 
         pygame.display.update()
         clock.tick(50)
