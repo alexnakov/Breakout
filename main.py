@@ -1,4 +1,3 @@
-import numpy as np
 import pygame
 import sys
 from pygame.locals import *
@@ -129,7 +128,7 @@ class Ball:
             array1[i + self.radius] = [i + self.centre_x, self.centre_y - ((self.radius**2 - i**2)**0.5)]
         for i in range(-self.radius, self.radius + 1):
             array2[i + self.radius] = [i + self.centre_x, self.centre_y + ((self.radius**2 - i**2)**0.5)]
-        self.outline_coords_list = np.concatenate((array1[:-1], array2[:-1]), axis=0)
+        self.outline_coords_list = numpy.concatenate((array1[:-1], array2[:-1]), axis=0)
 
     def update(self):
         self.velocity = self.velocity.normalize()
@@ -166,7 +165,7 @@ def main_menu():
 def game():
     lives, points = 5, 0
 
-    ball = Ball(500, 600, 10, (random.uniform(-2, 2), -1), root, 3)
+    ball = Ball(500, 600, 10, (random.uniform(-2, 2), -1), root, 2)
     left_wall = Brick(0, 0, 12, 600, root, ball, GRAY)
     top_wall = Brick(0, 0, 1020, 12, root, ball, GRAY)
     right_wall = Brick(1008, 0, 12, 600, root, ball, GRAY)
@@ -210,21 +209,21 @@ def game():
                         if number_green_bricks == 0 and no_green_bricks_left is False:
                             points += 250
                             no_green_bricks_left = True
-                            ball.speed = 4
+                            ball.speed = 3
                     elif brick.colour == YELLOW:
                         points += 10
                         number_yellow_bricks -= 1
                         if number_yellow_bricks == 0 and no_yellow_bricks_left is False:
                             points += 500
                             no_yellow_bricks_left = True
-                            ball.speed = 5
+                            ball.speed = 4
                     elif brick.colour == ORANGE:
                         points += 15
                         number_orange_bricks -= 1
                         if number_orange_bricks == 0 and no_orange_bricks_left is False:
                             points += 750
                             no_orange_bricks_left = True
-                            ball.speed = 6
+                            ball.speed = 5
                     elif brick.colour == RED:
                         points += 20
                         number_red_bricks -= 1
@@ -243,8 +242,8 @@ def game():
             ball.centre_y = 500
             ball.centre_x = random.randint(100, 900)
             ball.velocity[0], ball.velocity[1] = random.uniform(-1.2, 1.2), -1
-        lives_text_surf = font1.render(f"Lives left: {lives}", True, WHITE, BLACK)
-        points_text_surf = font1.render(f"Points: {points}", True, WHITE, BLACK)
+        lives_text_surf = font1.render(f"Lives left: {lives}  ", True, WHITE, BLACK)
+        points_text_surf = font1.render(f"Points: {points}  ", True, WHITE, BLACK)
         root.blit(lives_text_surf, (20, 17))
         root.blit(points_text_surf, (ROOT_SIZE[0] - 12 - 200, 17))
 
