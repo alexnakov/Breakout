@@ -4,6 +4,7 @@ from pygame.locals import *
 from constants import *
 import numpy
 import random
+import os
 pygame.init()
 
 
@@ -142,9 +143,10 @@ class Ball:
 
 def main_menu():
     """ When the game is run, this menu is the first thing displayed. Rules of the game could be added here """
-    background = pygame.image.load("Assets/startMenuBackground.png")
+    background = pygame.image.load(os.path.join(current_dir, "Assets\\startMenuBackground.png"))
     main_menu_surface = pygame.Surface((1020, 654))
-    start_button = Button(background, 510 - 150, 475, "Assets/playButton_U.png", "Assets/playButton_C.png")
+    start_button = Button(background, 510 - 150, 475, os.path.join(current_dir, "Assets\\playButton_U.png"),
+                          os.path.join(current_dir, "Assets\\playButton_C.png"))
     root.blit(main_menu_surface, (0, 0))
     while True:
         events = pygame.event.get()
@@ -254,9 +256,9 @@ def game():
 def game_over_menu(points):
     """ Screen to be displayed when player loses all lives """
     player_score = font3.render(f"{points}", True, RED)
-    game_over_surface = pygame.image.load("Assets/gameOverBackground.png")
-    start_again_button = Button(game_over_surface, 289, 475, "Assets/startAgain_U.png",
-                                "Assets/startAgain_C.png")
+    game_over_surface = pygame.image.load(os.path.join(current_dir, "Assets\\gameOverBackground.png"))
+    start_again_button = Button(game_over_surface, 289, 475, os.path.join(current_dir, "Assets\\startAgain_U.png"),
+                                os.path.join(current_dir, "Assets\\startAgain_C.png"))
     game_over_surface.blit(player_score, (root.get_size()[0] / 2 - player_score.get_size()[0] / 2, 280))
 
     while True:
@@ -275,7 +277,7 @@ def game_over_menu(points):
 
 def congratulations_screen():
     """ Screen to be displayed when the player breaks all bricks """
-    game_over_surface = pygame.image.load("Assets/congratsBackground.png")
+    game_over_surface = pygame.image.load(os.path.join(current_dir, "Assets\\congratsBackground.png"))
     root.blit(game_over_surface, (0, 0))
 
     while True:
@@ -290,6 +292,7 @@ def congratulations_screen():
 
 
 if __name__ == '__main__':
+    current_dir = os.path.abspath(__file__)[:-7]
     root = pygame.display.set_mode(ROOT_SIZE)
     clock = pygame.time.Clock()
     font1 = pygame.font.SysFont("Comic Sans MS", 30)
