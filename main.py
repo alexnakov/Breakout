@@ -234,7 +234,7 @@ def game():
                             no_red_bricks_left = True
                             ball.speed = 7
                     root.fill(BLACK, [brick.x, brick.y, brick.length, brick.height])
-                    bricks.remove(bricks[bricks.index(brick)])
+                    bricks.remove(brick)
 
         if ball.centre_y - ball.radius > ROOT_SIZE[1]:
             lives -= 1
